@@ -21,70 +21,72 @@ export default function ScrollAnimations() {
 
     lenis.on("scroll", ScrollTrigger.update);
 
-    gsap.ticker.add((time) => {
+    const rafCallback = (time: number) => {
       lenis.raf(time * 1000);
-    });
+    };
+    gsap.ticker.add(rafCallback);
     gsap.ticker.lagSmoothing(0);
 
     const scrollContainer = document.querySelector(".smooth-scroll-wrapper");
-    if (!scrollContainer) return;
 
-    ScrollTrigger.create({
-      trigger: scrollContainer,
-      start: "top top",
-      end: "bottom bottom",
-      onUpdate: (self) => {
-        document.documentElement.style.setProperty(
-          "--scroll-progress",
-          self.progress.toFixed(4)
+    if (scrollContainer) {
+      ScrollTrigger.create({
+        trigger: scrollContainer,
+        start: "top top",
+        end: "bottom bottom",
+        onUpdate: (self) => {
+          document.documentElement.style.setProperty(
+            "--scroll-progress",
+            self.progress.toFixed(4)
+          );
+        },
+      });
+
+      const sections = document.querySelectorAll(".reveal-section");
+      sections.forEach((section) => {
+        gsap.fromTo(
+          section,
+          { opacity: 0, y: 80 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 1,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: section,
+              start: "top 80%",
+              end: "top 30%",
+              toggleActions: "play none none reverse",
+            },
+          }
         );
-      },
-    });
+      });
 
-    const sections = document.querySelectorAll(".reveal-section");
-    sections.forEach((section) => {
-      gsap.fromTo(
-        section,
-        { opacity: 0, y: 80 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: section,
-            start: "top 80%",
-            end: "top 30%",
-            toggleActions: "play none none reverse",
-          },
-        }
-      );
-    });
-
-    const glitchElements = document.querySelectorAll(".glitch-reveal");
-    glitchElements.forEach((el) => {
-      gsap.fromTo(
-        el,
-        { opacity: 0, x: -30, skewX: 5 },
-        {
-          opacity: 1,
-          x: 0,
-          skewX: 0,
-          duration: 0.8,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: el,
-            start: "top 85%",
-            toggleActions: "play none none reverse",
-          },
-        }
-      );
-    });
+      const glitchElements = document.querySelectorAll(".glitch-reveal");
+      glitchElements.forEach((el) => {
+        gsap.fromTo(
+          el,
+          { opacity: 0, x: -30, skewX: 5 },
+          {
+            opacity: 1,
+            x: 0,
+            skewX: 0,
+            duration: 0.8,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: el,
+              start: "top 85%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+      });
+    }
 
     return () => {
       lenis.destroy();
       ScrollTrigger.getAll().forEach((t) => t.kill());
-      gsap.ticker.remove(lenis.raf);
+      gsap.ticker.remove(rafCallback);
     };
   }, []);
 
